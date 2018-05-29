@@ -17,6 +17,7 @@ import retrofit2.Response;
 
 public class InvoiceRepository {
 
+    private static final String SUCCESS = "200";
     private final AppCompatActivity appCompatActivity;
 
     public InvoiceRepository(AppCompatActivity appCompatActivity){
@@ -31,7 +32,7 @@ public class InvoiceRepository {
                 .enqueue(new Callback<LoginResponse>() {
                     @Override
                     public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
-                        if(response.body()!= null && "200".equals(response.body().getCode())) {
+                        if(response.body()!= null && SUCCESS.equals(response.body().getCode())) {
                             callback.onSuccess(response.body());
                         }else{
                             callback.onError(response.body());
@@ -43,7 +44,6 @@ public class InvoiceRepository {
                         LoginResponse loginResponse = new LoginResponse();
                         loginResponse.setMessage("Um erro ocorreu");
                         callback.onError(loginResponse);
-//                        Toast.makeText(appCompatActivity, "Um erro ocorreu", Toast.LENGTH_LONG).show();
                     }
                 });
     }
