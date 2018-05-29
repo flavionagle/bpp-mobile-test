@@ -4,15 +4,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.widget.Toast;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 import flavio.nagle.com.model.InvoiceResponse;
 import flavio.nagle.com.model.LoginResponse;
 import flavio.nagle.com.retrofit.RetrofitInstance;
-import flavio.nagle.com.retrofit.callbacks.OnLoginListener;
+import flavio.nagle.com.retrofit.callbacks.OnInvoice;
+import flavio.nagle.com.retrofit.callbacks.OnLogin;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -25,23 +23,15 @@ public class InvoiceRepository {
         this.appCompatActivity = appCompatActivity;
     }
 
-    public void login(final OnLoginListener callback){
-        String string = "Br@silPP123";
-
-        Map<String, String> queryMap = new HashMap<>();
-        queryMap.put("email", "waldisney@brasilprepagos.com.br");
-        try {
-            queryMap.put("passsord", Base64.encodeToString(string.getBytes("UTF-8"), Base64.DEFAULT));
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+    public void login(String email, String password, final OnLogin callback){
+        password = Base64.encodeToString(password.getBytes(), Base64.NO_WRAP);
         RetrofitInstance.returnGlobalRetrofitInstance()
                 .create(InvoiceRequest.class)
-                .login(queryMap)
+                .login(email, password)
                 .enqueue(new Callback<LoginResponse>() {
                     @Override
                     public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
-                        if(response.body()!= null && "200".equals(response.body().getStatus())) {
+                        if(response.body()!= null && "200".equals(response.body().getCode())) {
                             callback.onSuccess(response.body());
                         }else{
                             callback.onError(response.body());
@@ -50,19 +40,22 @@ public class InvoiceRepository {
 
                     @Override
                     public void onFailure(Call<LoginResponse> call, Throwable t) {
-                        Toast.makeText(appCompatActivity, "Um erro ocorreu", Toast.LENGTH_LONG).show();
+                        LoginResponse loginResponse = new LoginResponse();
+                        loginResponse.setMessage("Um erro ocorreu");
+                        callback.onError(loginResponse);
+//                        Toast.makeText(appCompatActivity, "Um erro ocorreu", Toast.LENGTH_LONG).show();
                     }
                 });
     }
 
-    public void getInvoice(){
+    public void getInvoice(final OnInvoice callback){
         RetrofitInstance.returnGlobalRetrofitInstance()
                 .create(InvoiceRequest.class)
                 .invoice()
                 .enqueue(new Callback<ArrayList<InvoiceResponse>>() {
                     @Override
                     public void onResponse(Call<ArrayList<InvoiceResponse>> call, Response<ArrayList<InvoiceResponse>> response) {
-                        Toast.makeText(appCompatActivity, response.body().toString(), Toast.LENGTH_LONG).show();
+                        callback.onResponse(response.body());
                     }
 
                     @Override
